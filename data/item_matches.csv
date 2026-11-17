@@ -1,3 +1,4 @@
+
 cafe,item,matched_to
 Lakeshore Lattes,Matcha Latte,(new item)
 Lakeshore Lattes,London Fog,(new item)
@@ -9,5 +10,5 @@ Hilltop Grind,Bagel w/ Cream Cheese,(new item)
 Canal Street Coffee,Brewed Coffee,Drip Coffee
 Canal Street Coffee,Mochaccino,Mocha Latte
 Canal Street Coffee,PSL,Pumpkin Spice Latte
-Canal Street Coffee,Cortado,Oat Milk Cortado
-Canal Street Coffee,Nitro Cold Brew,Cold Brew
+Canal Street Coffee,Cortado,(new item)
+Canal Street Coffee,Nitro Cold Brew,(new item)
