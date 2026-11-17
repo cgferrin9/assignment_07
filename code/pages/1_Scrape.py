@@ -30,7 +30,10 @@ from rivals import CAFES, MENUS_FILE, OUR_CAFE, run_scraper
 #    st.title: Salt City: Scrape the Rivals
 #    st.markdown: one sentence, e.g. "Pick the cafés to scrape. Each run replaces
 #    the saved dataset."
-#
+
+st.title("Salt City: Scrape the Rivals")
+st.markdown("Pick the cafés to scrape. Each run replaces the saved dataset.")
+
 # 2. PICK AND SCRAPE
 #    a. cafes <- st.multiselect labeled "Cafés", key "cafes", options list(CAFES),
 #       every café selected by default.
@@ -44,9 +47,26 @@ from rivals import CAFES, MENUS_FILE, OUR_CAFE, run_scraper
 #                                    st.code(the end of result.stderr) — the
 #                                    Python error, so you can fix it.
 #
+
+cafes = st.multiselect("Cafés", options=list(CAFES), default=list(CAFES), key="cafes")
+
+if st.button("Scrape", key="scrape") and cafes:
+    with st.spinner("Scraping cafés..."):
+        result = run_scraper(cafes)
+
+    if result.returncode == 0:
+        st.success(result.stdout.strip().splitlines()[-1])
+    else:
+        st.error("Scraper failed.")
+        st.code(result.stderr[-2000:])
+
 # 3. NOTHING TO SHOW YET?
 #    If MENUS_FILE does not exist: st.info("No menus yet — ...") and st.stop().
-#
+
+if not os.path.exists(MENUS_FILE):
+    st.info("No menus yet — click Scrape to create the dataset.")
+    st.stop()
+
 # 4. THE DATASET
 #    menus <- pd.read_csv(MENUS_FILE); theirs <- the rows whose cafe is not OUR_CAFE
 #    Three st.metric cards side by side (st.columns(3)), all about `theirs`:
@@ -55,3 +75,23 @@ from rivals import CAFES, MENUS_FILE, OUR_CAFE, run_scraper
 #    st.dataframe(menus, hide_index=True)
 #    st.download_button "Download the dataset" with menus.to_csv(index=False),
 #       file_name "menus.csv", mime "text/csv", key "download"
+
+
+menus = pd.read_csv(MENUS_FILE)
+theirs = menus[menus["cafe"] != OUR_CAFE]
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric("Cafés", theirs["cafe"].nunique())
+col2.metric("Items", theirs[["cafe", "item"]].drop_duplicates().shape[0])
+col3.metric("Rows", len(theirs))
+
+st.dataframe(menus, hide_index=True)
+
+st.download_button(
+    "Download the dataset",
+    data=menus.to_csv(index=False),
+    file_name="menus.csv",
+    mime="text/csv",
+    key="download"
+)

@@ -49,8 +49,18 @@ def scrape_lakeshore(page) -> list[dict]:
           category, card.inner_text())` — add its rows to your list.
     - Return all the rows in one list. (The cards have photos; you don't need them.)
     """
-    # TODO: your code here
-    pass
+    page.goto(cafe_url("Lakeshore Lattes"))
+    rows = []
+
+    for heading in page.query_selector_all("h2.menu-section__title"):
+        category = heading.inner_text()
+        grid = heading.query_selector("~ div.menu-grid")
+
+        for card in grid.query_selector_all("article.menu-card"):
+            rows.extend(card_rows("Lakeshore Lattes", category, card.inner_text()))
+
+    return rows
+
 
 
 def scrape_hilltop(page) -> list[dict]:
@@ -75,8 +85,26 @@ def scrape_hilltop(page) -> list[dict]:
       var_name="size", value_name="price"`.
     - Turn each melted row into a dict with the five keys; `clean_price()` the price.
     """
-    # TODO: your code here
-    pass
+    page.goto(cafe_url("Hilltop Grind"))
+    categories = [h.inner_text() for h in page.query_selector_all("#menu h2")]
+    tables = pd.read_html(StringIO(page.content()))
+    rows = []
+
+    for category, table in zip(categories, tables):
+        melted = table.drop(columns="Description").melt(
+            id_vars="Item", var_name="size", value_name="price"
+        )
+
+        for _, row in melted.iterrows():
+            rows.append({
+                "cafe": "Hilltop Grind",
+                "category": category,
+                "item": row["Item"],
+                "size": row["size"],
+                "price": clean_price(row["price"])
+            })
+
+    return rows
 
 
 def scrape_canal(page, shop: str = CANAL_SHOP) -> list[dict]:
@@ -104,5 +132,40 @@ def scrape_canal(page, shop: str = CANAL_SHOP) -> list[dict]:
       (the text of `#item-category` before " · "), and one row per
       `#sizes tbody tr` — its two `td` cells are the size and the price.
     """
-    # TODO: your code here
-    pass
+    page.goto(cafe_url("Canal Street Coffee"))
+    page.get_by_label("Choose your shop").select_option(shop)
+    page.get_by_role("button", name="Show full menu").click()
+    page.wait_for_selector("a.result-card")
+
+    more = page.get_by_role("button", name="Show more")
+    while more.is_visible():
+        count = page.locator("a.result-card").count()
+        more.click()
+        page.wait_for_function(
+            f"document.querySelectorAll('a.result-card').length > {count}"
+        )
+
+    links = [
+        card.get_attribute("href")
+        for card in page.locator("a.result-card").all()
+    ]
+
+    rows = []
+    for href in links:
+        page.goto(urljoin(cafe_url("Canal Street Coffee"), href))
+        page.wait_for_selector("#sizes")
+
+        item = page.locator("#item-name").inner_text()
+        category = page.locator("#item-category").inner_text().split(" · ")[0]
+
+        for tr in page.locator("#sizes tbody tr").all():
+            cells = tr.locator("td").all()
+            rows.append({
+                "cafe": "Canal Street Coffee",
+                "category": category,
+                "item": item,
+                "size": cells[0].inner_text(),
+                "price": clean_price(cells[1].inner_text())
+            })
+
+    return rows
