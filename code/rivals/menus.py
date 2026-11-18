@@ -58,6 +58,7 @@ def add_kinds(menus: pd.DataFrame, categories: pd.DataFrame) -> pd.DataFrame:
     """
     return menus.merge(categories, on=["cafe", "category"], how="left")
 
+
 def build_dataset(rival_rows: list[dict]) -> pd.DataFrame:
     """The whole dataset: our menu first, then the rivals' rows, as one table.
 

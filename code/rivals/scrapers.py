@@ -62,7 +62,6 @@ def scrape_lakeshore(page) -> list[dict]:
     return rows
 
 
-
 def scrape_hilltop(page) -> list[dict]:
     """Hilltop Grind: inside `<div id="menu">`, an `<h2>` and a `<table>` per category.
 

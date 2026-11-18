@@ -34,11 +34,12 @@ def clean_price(text: str) -> float:
 
     - Remove the dollar sign and any commas with `.replace()`.
     - `.strip()` the spaces, then convert with `float()`.
-    """    
+    """
     """Convert a price string into a float."""
     text = text.replace("$", "").replace(",", "")
     text = text.strip()
     return float(text)
+
 
 def clean_card_lines(text: str) -> list[str]:
     """The useful lines of a menu card, in order, with the decoration removed.
